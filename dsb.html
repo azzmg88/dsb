@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digitales schwarzes Brett</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .folie {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 1s ease-in-out; /* Überblenddauer */
+    }
+
+    .folie.sichtbar {
+      opacity: 1;
+    }
+
+    #fehler {
+      display: none;
+      color: white;
+      font: 24px sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <img id="folie1" class="folie" alt="Information">
+  <img id="folie2" class="folie" alt="Information">
+  <div id="fehler">Die Bilder konnten nicht geladen werden. Bitte Bildpfade und Dateinamen prüfen.</div>
+
+  <script>
+    const bilder = [
+       "src/1.jpg",
+	"src/2.jpg",
+	"src/3.jpg",
+	"src/4.jpg",
+	"src/5.jpg",
+	"src/6.jpg",
+	"src/7.jpg",
+	"src/8.jpg",
+	"src/9.jpg",
+	"src/10.jpg",
+	"src/11.jpg",
+  
+    ];
+
+    const wechselIntervall = 30_000; // 30 Sekunden
+    const folien = [
+      document.getElementById("folie1"),
+      document.getElementById("folie2")
+    ];
+    const fehler = document.getElementById("fehler");
+
+    let aktuell = 0;
+    let sichtbarerSchirm = 0;
+
+    function zeigeFehler(pfad) {
+      fehler.style.display = "block";
+      console.error("Bild konnte nicht geladen werden:", pfad);
+    }
+
+    function ladeNaechstesBild() {
+      const naechsterIndex = (aktuell + 1) % bilder.length;
+      const naechsterSchirm = 1 - sichtbarerSchirm;
+      const bild = folien[naechsterSchirm];
+
+      bild.onload = () => {
+        fehler.style.display = "none";
+        bild.classList.add("sichtbar");
+        folien[sichtbarerSchirm].classList.remove("sichtbar");
+        aktuell = naechsterIndex;
+        sichtbarerSchirm = naechsterSchirm;
+      };
+
+      bild.onerror = () => zeigeFehler(bilder[naechsterIndex]);
+      bild.src = bilder[naechsterIndex];
+    }
+
+    if (bilder.length > 0) {
+      folien[0].onload = () => {
+        folien[0].classList.add("sichtbar");
+      };
+
+      folien[0].onerror = () => zeigeFehler(bilder[0]);
+      folien[0].src = bilder[0];
+
+      if (bilder.length > 1) {
+        setInterval(ladeNaechstesBild, wechselIntervall);
+      }
+    } else {
+      zeigeFehler("Keine Bilder eingetragen");
+    }
+  </script>
+</body>
+</html>
